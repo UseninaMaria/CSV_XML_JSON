@@ -5,13 +5,13 @@ import com.opencsv.CSVReader;
 import com.opencsv.bean.ColumnPositionMappingStrategy;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.w3c.dom.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +28,46 @@ public class Main {
         List<Employee> list1 = parseXML("data.xml");
         String json2 = listToJson(list1);
         writeString(json2, "data2.json");
+
+        String json1 = readString("new_data.json");
+//        System.out.println(json1);
+        List<Employee> list2 = jsonToList(json1);
+//        System.out.println(list2.get(0).toString());
+//        System.out.println(list2.get(1).toString());
+    }
+
+    public static String readString(String fileName) {
+        StringBuilder sb = new StringBuilder();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return sb.toString();
+    }
+
+    public static List<Employee> jsonToList(String jsonName) {
+        List<Employee> employeeList = new ArrayList<>();
+        JSONParser parser = new JSONParser();
+        try {
+            JSONArray jsonArray = (JSONArray) parser.parse(jsonName);
+
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            Gson gson = gsonBuilder.create();
+
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JSONObject jsonObject = (JSONObject) jsonArray.get(i);
+                Employee employee = gson.fromJson(jsonObject.toString(), Employee.class);
+                employeeList.add(employee);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return employeeList;
     }
 
     public static List<Employee> parseCSV(String[] columnMapping, String fileName) {
